@@ -1,8 +1,8 @@
 <launch>
 
-	<arg name="model" default="burger"/>
+	<arg name="model" default="waffle"/>
+	<arg name="world_file"  default="with_holes"/>
 	<arg name="map_pgm" default="mymap"/>	
-	<arg name="world_file"  default="turtlebot3_world"/>
 	<include file="$(find gazebo_ros)/launch/empty_world.launch">
 		<arg name="world_name" value="$(find my_ft)/worlds/$(arg world_file).world"/>
 		<arg name="paused" value="false"/>
@@ -45,6 +45,6 @@
 
 		<remap from="/odom"	to="/odom"/>
 	</node>
-
+	<node name="map_server" pkg="map_server" type="map_server" args="$(find my_ft)/map/$(arg map_pgm).yaml"/>
 	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find my_ft)/rviz/Rviz.rviz"/>
 </launch>
