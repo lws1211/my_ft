@@ -1,0 +1,28 @@
+<launch>
+	<arg name="model" default="burger"/>
+	<arg name="world" default="world"/>
+	<param name="robot_description" command="$(find xacro)/xacro $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
+
+	<include file="$(find gazebo_ros)/launch/empty_world.launch">
+		<arg name="world_name" value="$(find my_ft)/worlds/$(arg world).world"/> <!-- Note: the world_name is with respect to GAZEBO_RESOURCE_PATH environmental variable "rospack plugins -(remove this)-attrib="gazebo_media_path" gazebo_ros"-->
+		<arg name="paused" value="false"/>
+		<arg name="use_sim_time" value="true"/>
+		<arg name="gui" value="true"/>
+		<arg name="recording" value="false"/>
+		<arg name="debug" value="false"/>
+  	</include>
+
+	<node name="robot_spawn" pkg="gazebo_ros" type="spawn_model" output="screen" args="-urdf -param robot_description -model robot -z 2.6" />
+	<rosparam command="load" file="$(find joint_state_controller)/joint_state_controller.yaml" />
+
+	<node name="joint_state_controller_spawner" pkg="controller_manager" type="spawner" output="screen" args="joint_state_controller" />
+	<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" >
+    	<remap from="robot_description" to="robot_description" />
+  	</node> 
+
+	<node name="gmap" pkg="gmapping" type="slam_gmapping">
+		<param name="base_frame" value="base_footprint"/>
+    	<param name="odom_frame" value="odom"/>
+	</node>
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find my_ft)/rviz/Rviz.rviz"/>
+</launch>

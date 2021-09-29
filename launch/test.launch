@@ -1,0 +1,28 @@
+<launch>
+    <arg name="map" default="$(find my_ft)/maps/mymap.yaml"/>
+    <arg name="coverage_area_offset" default="-2.5 -2.5 0 0 0 0"/>
+    <arg name="coverage_area_size_x" default="10"/>
+    <arg name="coverage_area_size_y" default="10"/>
+    <arg name="target_x_vel" default="0.5"/>
+    <arg name="target_yaw_vel" default="0.4"/>
+    <arg name="robot_radius" default="0.3"/>
+    <arg name="tool_radius" default="0.3"/>
+    <arg name="rviz" default="true"/>
+
+    <!--Move base flex, using the full_coverage_path_planner-->
+    <node pkg="mbf_costmap_nav" type="mbf_costmap_nav" respawn="false" name="move_base_flex" output="screen" required="true">
+        <param name="tf_timeout" value="1.5"/>
+        <rosparam file="$(find full_coverage_path_planner)/test/full_coverage_path_planner/param/planners.yaml" command="load" />
+        <rosparam file="$(find full_coverage_path_planner)/test/full_coverage_path_planner/param/local_costmap_params.yaml" command="load" />
+        <param name="SpiralSTC/robot_radius" value="$(arg robot_radius)"/>
+        <param name="SpiralSTC/tool_radius" value="$(arg tool_radius)"/>
+        <param name="global_costmap/robot_radius" value="$(arg robot_radius)"/>
+        <remap from="odom" to="/odom"/>
+        <remap from="scan" to="/scan"/>
+
+        <remap from="/move_base_flex/SpiralSTC/plan" to="/move_base/SpiralSTC/plan"/>
+        
+    </node>
+    <!-- Move Base backwards compatibility -->
+
+</launch>

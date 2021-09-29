@@ -1,0 +1,57 @@
+<launch>
+
+	<arg name="model" default="burger"/>
+	<arg name="map_pgm" default="mymap"/>	
+	<arg name="world_file"  default="turtlebot3_world"/>
+	<include file="$(find gazebo_ros)/launch/empty_world.launch">
+		<arg name="world_name" value="$(find my_ft)/worlds/$(arg world_file).world"/>
+		<arg name="paused" value="false"/>
+		<arg name="use_sim_time" value="true"/>
+		<arg name="gui" value="true"/>
+		<arg name="headless" value="false"/>
+		<arg name="debug" value="false"/>
+	</include>
+
+	<param name="robot_description" command="$(find xacro)/xacro $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
+
+
+	<rosparam command="load" file="$(find joint_state_controller)/joint_state_controller.yaml" />
+	<node name="joint_state_controller_spawner" pkg="controller_manager" type="spawner" output="screen" args="joint_state_controller" />
+
+	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"></node>
+
+	<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" output="screen">
+	<param name="publish_frequency" type="double" value="30.0"/>
+	<!--param name="tf_prefix" type="string" value="" /-->
+	</node>
+
+	<node name="turtle_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
+	  args="-urdf -param robot_description -model turtle -z 2.6" />
+
+	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+		<rosparam file="$(find my_ft)/config/costmap_common_params.yaml" command="load" ns="global_costmap"/>
+		<rosparam file="$(find my_ft)/config/costmap_common_params.yaml" command="load" ns="local_costmap"/>
+
+		<rosparam file="$(find my_ft)/config/global_costmap_params.yaml" command="load" />
+		<rosparam file="$(find my_ft)/config/local_costmap_params.yaml" command="load" />
+
+		<rosparam file="$(find my_ft)/config/base_local_planner_params.yaml" command="load" />
+		<rosparam file="$(find my_ft)/config/move_base_params.yaml" command="load" />
+
+		<param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/>
+
+		<!-- <param name="base_global_planner" type="string" value="navfn/NavfnROS" /> -->
+		<param name="base_global_planner" type="string" value="navfn_sub/NavfnROS" />
+
+		<remap from="/odom"	to="/odom"/>
+	</node>
+
+	<node name="map_server" pkg="map_server" type="map_server" args="$(find my_ft)/map/$(arg map_pgm).yaml"/>
+	<node name="map_server2" pkg="map_server" type="map_server" args="$(find my_ft)/map/$(arg map_pgm)2.yaml">
+		<remap from="static_map"	to="/static_map2"/>
+		<remap from="/map"	to="/map2"/>
+	</node>
+	<include file="$(find amcl)/examples/amcl_omni.launch" />
+
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find my_ft)/rviz/Rviz.rviz"/>
+</launch>
